@@ -1,0 +1,60 @@
+# Ignore Visual Studio temporary files, build results, and
+# build directories.
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+.vscode/
+.vs/
+
+# User-specific files
+*.rsuser
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files
+*.generated.cs
+
+# Database files
+*.mdf
+*.ldf
+*.db
+
+# Logs and diagnostic reports
+*.log
+*.tlg
+*.ide.log
+
+# DotNet specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider and JetBrains
+.idea/
+*.iml
+
+# Docker specific
+docker-compose.override.yml
+.env
+**/pg_data/
+**/postgres_data/
+
+# NPM-related files (if Node.js is used for frontends)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Miscellaneous
+*.class
+*.pyc
+*.pid
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
