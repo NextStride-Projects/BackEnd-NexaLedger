@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using AuthAPI.Data;
 using AuthAPI.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AuthAPI.Controllers
 {
@@ -20,19 +21,37 @@ namespace AuthAPI.Controllers
 
         private int GetEmpresaIdFromToken()
         {
-            var empresaIdClaim = User.Claims.FirstOrDefault(c => c.Type == "EmpresaId")
-                                 ?? throw new UnauthorizedAccessException("EmpresaId not found in token.");
+            var empresaIdClaim =
+                User.Claims.FirstOrDefault(c => c.Type == "EmpresaId")
+                ?? throw new UnauthorizedAccessException("EmpresaId not found in token.");
             return int.Parse(empresaIdClaim.Value);
+        }
+
+        private bool IsAdmin()
+        {
+            return User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        }
+
+        private IActionResult ForbidResultWithMessage(string message)
+        {
+            return new ObjectResult(new { error = message })
+            {
+                StatusCode = StatusCodes.Status403Forbidden,
+            };
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEmpresa(int id)
         {
-            var loggedInEmpresaId = GetEmpresaIdFromToken();
-
-            if (id != loggedInEmpresaId)
+            if (!IsAdmin())
             {
-                return ForbidResultWithMessage("You do not have access to this Empresa's data.");
+                var loggedInEmpresaId = GetEmpresaIdFromToken();
+                if (id != loggedInEmpresaId)
+                {
+                    return ForbidResultWithMessage(
+                        "You do not have access to this Empresa's data."
+                    );
+                }
             }
 
             var empresa = await _context.Empresas.FindAsync(id);
@@ -48,8 +67,13 @@ namespace AuthAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetEmpresas()
         {
-            var loggedInEmpresaId = GetEmpresaIdFromToken();
+            if (IsAdmin())
+            {
+                var allEmpresas = await _context.Empresas.ToListAsync();
+                return Ok(allEmpresas);
+            }
 
+            var loggedInEmpresaId = GetEmpresaIdFromToken();
             var empresa = await _context.Empresas.FindAsync(loggedInEmpresaId);
 
             if (empresa == null)
@@ -63,11 +87,15 @@ namespace AuthAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEmpresa(int id, Empresa updatedEmpresa)
         {
-            var loggedInEmpresaId = GetEmpresaIdFromToken();
-
-            if (id != loggedInEmpresaId)
+            if (!IsAdmin())
             {
-                return ForbidResultWithMessage("You do not have access to update this Empresa.");
+                var loggedInEmpresaId = GetEmpresaIdFromToken();
+                if (id != loggedInEmpresaId)
+                {
+                    return ForbidResultWithMessage(
+                        "You do not have access to update this Empresa."
+                    );
+                }
             }
 
             var empresa = await _context.Empresas.FindAsync(id);
@@ -77,22 +105,34 @@ namespace AuthAPI.Controllers
                 return NotFound("Empresa not found.");
             }
 
-            if (!string.IsNullOrEmpty(updatedEmpresa.Nombre) && empresa.Nombre != updatedEmpresa.Nombre)
+            if (
+                !string.IsNullOrEmpty(updatedEmpresa.Nombre)
+                && empresa.Nombre != updatedEmpresa.Nombre
+            )
             {
                 empresa.Nombre = updatedEmpresa.Nombre;
             }
 
-            if (!string.IsNullOrEmpty(updatedEmpresa.Direccion) && empresa.Direccion != updatedEmpresa.Direccion)
+            if (
+                !string.IsNullOrEmpty(updatedEmpresa.Direccion)
+                && empresa.Direccion != updatedEmpresa.Direccion
+            )
             {
                 empresa.Direccion = updatedEmpresa.Direccion;
             }
 
-            if (!string.IsNullOrEmpty(updatedEmpresa.Telefono) && empresa.Telefono != updatedEmpresa.Telefono)
+            if (
+                !string.IsNullOrEmpty(updatedEmpresa.Telefono)
+                && empresa.Telefono != updatedEmpresa.Telefono
+            )
             {
                 empresa.Telefono = updatedEmpresa.Telefono;
             }
 
-            if (!string.IsNullOrEmpty(updatedEmpresa.Email) && empresa.Email != updatedEmpresa.Email)
+            if (
+                !string.IsNullOrEmpty(updatedEmpresa.Email)
+                && empresa.Email != updatedEmpresa.Email
+            )
             {
                 empresa.Email = updatedEmpresa.Email;
             }
@@ -106,11 +146,15 @@ namespace AuthAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmpresa(int id)
         {
-            var loggedInEmpresaId = GetEmpresaIdFromToken();
-
-            if (id != loggedInEmpresaId)
+            if (!IsAdmin())
             {
-                return ForbidResultWithMessage("You do not have access to delete this Empresa.");
+                var loggedInEmpresaId = GetEmpresaIdFromToken();
+                if (id != loggedInEmpresaId)
+                {
+                    return ForbidResultWithMessage(
+                        "You do not have access to delete this Empresa."
+                    );
+                }
             }
 
             var empresa = await _context.Empresas.FindAsync(id);
@@ -124,14 +168,6 @@ namespace AuthAPI.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Empresa deleted successfully!" });
-        }
-
-        private IActionResult ForbidResultWithMessage(string message)
-        {
-            return new ObjectResult(new { error = message })
-            {
-                StatusCode = StatusCodes.Status403Forbidden
-            };
         }
     }
 }
