@@ -1,9 +1,9 @@
+using System.Security.Claims;
 using AuthAPI.Data;
 using AuthAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AuthAPI.Controllers
 {
@@ -96,6 +96,16 @@ namespace AuthAPI.Controllers
                         "You do not have access to update this Empresa."
                     );
                 }
+
+                await RedisPublisher.PublishLogAsync(
+                    new
+                    {
+                        Action = "UpdateEmpresa",
+                        EmpresaId = loggedInEmpresaId,
+                        AccessedEmpresaId = id,
+                        Timestamp = DateTime.UtcNow,
+                    }
+                );
             }
 
             var empresa = await _context.Empresas.FindAsync(id);
@@ -155,6 +165,16 @@ namespace AuthAPI.Controllers
                         "You do not have access to delete this Empresa."
                     );
                 }
+
+                await RedisPublisher.PublishLogAsync(
+                    new
+                    {
+                        Action = "DeleteEmpresa",
+                        EmpresaId = loggedInEmpresaId,
+                        AccessedEmpresaId = id,
+                        Timestamp = DateTime.UtcNow,
+                    }
+                );
             }
 
             var empresa = await _context.Empresas.FindAsync(id);

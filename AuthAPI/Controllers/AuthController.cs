@@ -33,6 +33,16 @@ namespace AuthAPI.Controllers
             _context.Empresas.Add(empresa);
             await _context.SaveChangesAsync();
 
+            await RedisPublisher.PublishLogAsync(
+                new
+                {
+                    Action = "PostEmpresa",
+                    EmpresaId = "",
+                    AccessedEmpresaId = "",
+                    Timestamp = DateTime.UtcNow,
+                }
+            );
+
             return Ok(new { message = "Empresa registered successfully!" });
         }
 
@@ -54,6 +64,16 @@ namespace AuthAPI.Controllers
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
+
+            await RedisPublisher.PublishLogAsync(
+                new
+                {
+                    Action = "PostUser",
+                    EmpresaId = "",
+                    AccessedEmpresaId = "",
+                    Timestamp = DateTime.UtcNow,
+                }
+            );
 
             return Ok(new { message = "Usuario registered successfully!" });
         }
@@ -99,7 +119,6 @@ namespace AuthAPI.Controllers
         [HttpPost("login/admin")]
         public IActionResult AdminLogin(string adminKey)
         {
-            
             if (adminKey != _configuration["Admin:Key"])
             {
                 return Unauthorized("Invalid admin key.");

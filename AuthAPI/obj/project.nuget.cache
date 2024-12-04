@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "DyQh7OQd8IivU4ppOOeMqJIHwNO9Lo1+YS4p3Yl0+mP2lfyHuQBgNTWMCOIRCeS+mACimKnO5L1lKxdIjSrDZA==",
+  "dgSpecHash": "/4K47KihyCXy7jRQwmw+yiuxnszclfeu8InVdyD0VNbgB2M/3+s4PxwPFeLITLBfXexvnm7WHBzH3Wr3WkqNOg==",
   "success": true,
   "projectFilePath": "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
   "expectedPackageFiles": [
@@ -44,6 +44,8 @@
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/npgsql/9.0.1/npgsql.9.0.1.nupkg.sha512",
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/npgsql.entityframeworkcore.postgresql/9.0.1/npgsql.entityframeworkcore.postgresql.9.0.1.nupkg.sha512",
+    "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/stackexchange.redis/2.8.22/stackexchange.redis.2.8.22.nupkg.sha512",
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/swashbuckle.aspnetcore/7.1.0/swashbuckle.aspnetcore.7.1.0.nupkg.sha512",
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/swashbuckle.aspnetcore.swagger/7.1.0/swashbuckle.aspnetcore.swagger.7.1.0.nupkg.sha512",
     "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/swashbuckle.aspnetcore.swaggergen/7.1.0/swashbuckle.aspnetcore.swaggergen.7.1.0.nupkg.sha512",
