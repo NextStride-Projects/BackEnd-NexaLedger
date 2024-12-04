@@ -1,8 +1,7 @@
-namespace RecorderAPI.Models
+namespace AuthAPI.Models
 {
     public class Log
     {
-        public int Id { get; set; } // Primary Key
         public string Action { get; set; } = null!;
         public string UserId { get; set; } = null!;
         public int EmpresaId { get; set; }

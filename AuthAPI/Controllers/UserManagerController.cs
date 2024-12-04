@@ -1,5 +1,6 @@
 using AuthAPI.Data;
 using AuthAPI.Models;
+using AuthAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,14 @@ namespace AuthAPI.Controllers
                 User.Claims.FirstOrDefault(c => c.Type == "EmpresaId")
                 ?? throw new UnauthorizedAccessException("EmpresaId not found in token.");
             return int.Parse(empresaIdClaim.Value);
+        }
+
+        private string GetUserIdFromToken()
+        {
+            var userIdClaim =
+                User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
+                ?? throw new UnauthorizedAccessException("UserId not found in token.");
+            return userIdClaim.Value;
         }
 
         private bool IsAdmin()
@@ -100,6 +109,8 @@ namespace AuthAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUsuario(int id, Usuario updatedUsuario)
         {
+            var userId = GetUserIdFromToken();
+
             if (!IsAdmin())
             {
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
@@ -116,6 +127,18 @@ namespace AuthAPI.Controllers
                         "You do not have access to update this Usuario."
                     );
                 }
+
+                // Create a log entry
+                var log = new Log
+                {
+                    Action = "UpdateUsuario",
+                    UserId = userId,
+                    EmpresaId = loggedInEmpresaId,
+                    AccessedUsuarioId = id,
+                    Timestamp = DateTime.UtcNow,
+                };
+
+                await RedisPublisher.PublishLogAsync(log);
 
                 UpdateUsuarioFields(usuario, updatedUsuario);
                 await _context.SaveChangesAsync();
@@ -137,6 +160,8 @@ namespace AuthAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
+            var userId = GetUserIdFromToken();
+
             if (!IsAdmin())
             {
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
@@ -153,6 +178,18 @@ namespace AuthAPI.Controllers
                         "You do not have access to delete this Usuario."
                     );
                 }
+
+                // Create a log entry
+                var log = new Log
+                {
+                    Action = "DeleteUsuario",
+                    UserId = userId,
+                    EmpresaId = loggedInEmpresaId,
+                    AccessedUsuarioId = id,
+                    Timestamp = DateTime.UtcNow,
+                };
+
+                await RedisPublisher.PublishLogAsync(log);
 
                 _context.Usuarios.Remove(usuario);
                 await _context.SaveChangesAsync();

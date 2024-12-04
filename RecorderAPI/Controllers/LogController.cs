@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecorderAPI.Data;
+using RecorderAPI.Models;
+using System.Linq;
 using System.Security.Claims;
 
 namespace RecorderAPI.Controllers
@@ -32,7 +34,14 @@ namespace RecorderAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllLogs()
+        public async Task<IActionResult> GetLogs(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? sortBy = "id",
+            [FromQuery] string? sortDirection = "asc",
+            [FromQuery] string? userId = null,
+            [FromQuery] int? empresaId = null
+            )
         {
             // Ensure only Admin can access this endpoint
             if (!IsAdmin())
@@ -40,10 +49,48 @@ namespace RecorderAPI.Controllers
                 return ForbidResultWithMessage("You do not have access to this resource.");
             }
 
-            // Fetch all logs from the database
-            var logs = await _context.Logs.ToListAsync();
+            var query = _context.Logs.AsQueryable();
 
-            return Ok(logs);
+            // Apply filters
+            if (!string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(log => log.UserId.Contains(userId));
+            }
+
+            if (empresaId.HasValue)
+            {
+                query = query.Where(log => log.EmpresaId == empresaId.Value);
+            }
+
+            // Apply sorting
+            switch (sortBy?.ToLower())
+            {
+                case "id":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(l => l.Id) : query.OrderBy(l => l.Id);
+                    break;
+                case "timestamp":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(l => l.Timestamp) : query.OrderBy(l => l.Timestamp);
+                    break;
+                default:
+                    return BadRequest("Invalid sortBy field.");
+            }
+
+            // Apply pagination
+            var totalItems = await query.CountAsync();
+            var logs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                totalItems,
+                totalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                currentPage = page,
+                pageSize,
+                logs
+            });
         }
+
     }
 }

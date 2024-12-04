@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AuthAPI.Data;
 using AuthAPI.Models;
+using AuthAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,14 @@ namespace AuthAPI.Controllers
                 User.Claims.FirstOrDefault(c => c.Type == "EmpresaId")
                 ?? throw new UnauthorizedAccessException("EmpresaId not found in token.");
             return int.Parse(empresaIdClaim.Value);
+        }
+
+        private string GetUserIdFromToken()
+        {
+            var userIdClaim =
+                User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
+                ?? throw new UnauthorizedAccessException("UserId not found in token.");
+            return userIdClaim.Value;
         }
 
         private bool IsAdmin()
@@ -65,28 +74,70 @@ namespace AuthAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEmpresas()
+        public async Task<IActionResult> GetEmpresas(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? sortBy = "id",
+            [FromQuery] string? sortDirection = "asc",
+            [FromQuery] string? nombre = null
+        )
         {
-            if (IsAdmin())
+            var query = _context.Empresas.AsQueryable();
+
+            if (!IsAdmin())
             {
-                var allEmpresas = await _context.Empresas.ToListAsync();
-                return Ok(allEmpresas);
+                var loggedInEmpresaId = GetEmpresaIdFromToken();
+                query = query.Where(e => e.Id == loggedInEmpresaId);
             }
 
-            var loggedInEmpresaId = GetEmpresaIdFromToken();
-            var empresa = await _context.Empresas.FindAsync(loggedInEmpresaId);
-
-            if (empresa == null)
+            // Apply filtering
+            if (!string.IsNullOrEmpty(nombre))
             {
-                return NotFound("Empresa not found.");
+                query = query.Where(e => e.Nombre.Contains(nombre));
             }
 
-            return Ok(new List<Empresa> { empresa });
+            // Apply sorting
+            switch (sortBy?.ToLower())
+            {
+                case "id":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.Id) : query.OrderBy(e => e.Id);
+                    break;
+                case "nombre":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.Nombre) : query.OrderBy(e => e.Nombre);
+                    break;
+                // Add more cases as needed for other sortable fields
+                default:
+                    return BadRequest("Invalid sortBy field.");
+            }
+
+            // Total items before pagination
+            var totalItems = await query.CountAsync();
+
+            // Apply pagination
+            var empresas = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var response = new
+            {
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize,
+                empresas
+            };
+
+            return Ok(response);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEmpresa(int id, Empresa updatedEmpresa)
         {
+            var userId = GetUserIdFromToken();
+
             if (!IsAdmin())
             {
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
@@ -97,15 +148,17 @@ namespace AuthAPI.Controllers
                     );
                 }
 
-                await RedisPublisher.PublishLogAsync(
-                    new
-                    {
-                        Action = "UpdateEmpresa",
-                        EmpresaId = loggedInEmpresaId,
-                        AccessedEmpresaId = id,
-                        Timestamp = DateTime.UtcNow,
-                    }
-                );
+                // Create a log entry
+                var log = new Log
+                {
+                    Action = "UpdateEmpresa",
+                    UserId = userId,
+                    EmpresaId = loggedInEmpresaId,
+                    AccessedEmpresaId = id,
+                    Timestamp = DateTime.UtcNow,
+                };
+
+                await RedisPublisher.PublishLogAsync(log);
             }
 
             var empresa = await _context.Empresas.FindAsync(id);
@@ -156,6 +209,8 @@ namespace AuthAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmpresa(int id)
         {
+            var userId = GetUserIdFromToken();
+
             if (!IsAdmin())
             {
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
@@ -166,15 +221,17 @@ namespace AuthAPI.Controllers
                     );
                 }
 
-                await RedisPublisher.PublishLogAsync(
-                    new
-                    {
-                        Action = "DeleteEmpresa",
-                        EmpresaId = loggedInEmpresaId,
-                        AccessedEmpresaId = id,
-                        Timestamp = DateTime.UtcNow,
-                    }
-                );
+                // Create a log entry
+                var log = new Log
+                {
+                    Action = "DeleteEmpresa",
+                    UserId = userId,
+                    EmpresaId = loggedInEmpresaId,
+                    AccessedEmpresaId = id,
+                    Timestamp = DateTime.UtcNow,
+                };
+
+                await RedisPublisher.PublishLogAsync(log);
             }
 
             var empresa = await _context.Empresas.FindAsync(id);

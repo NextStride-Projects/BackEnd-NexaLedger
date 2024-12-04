@@ -1,27 +1,17 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+
 using StackExchange.Redis;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
+
 using RecorderAPI.Data;
 using RecorderAPI.Models;
 
-public class RedisListener : BackgroundService
+public class RedisListener(IServiceProvider serviceProvider, IConfiguration configuration, ILogger<RedisListener> logger) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<RedisListener> _logger;
-    private readonly string _redisConnection;
-    private readonly string _redisChannel;
-
-    public RedisListener(IServiceProvider serviceProvider, IConfiguration configuration, ILogger<RedisListener> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-        _redisConnection = configuration["Redis:Connection"];
-        _redisChannel = configuration["Redis:Channel"];
-    }
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly ILogger<RedisListener> _logger = logger;
+    private readonly string _redisConnection = configuration["Redis:Connection"];
+    private readonly string _redisChannel = configuration["Redis:Channel"];
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -30,18 +20,39 @@ public class RedisListener : BackgroundService
 
         _logger.LogInformation($"Subscribed to Redis channel: {_redisChannel}");
 
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true, // Ignore case for JSON property names
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull // Handle nulls gracefully
+        };
+
         await subscriber.SubscribeAsync(_redisChannel, async (channel, message) =>
         {
-            var log = JsonSerializer.Deserialize<Log>(message);
-            if (log != null)
+            try
             {
-                using var scope = _serviceProvider.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<LogContext>();
-                await context.Logs.AddAsync(log, stoppingToken);
-                await context.SaveChangesAsync(stoppingToken);
-                _logger.LogInformation($"Processed log: {log.Action}");
+                var log = JsonSerializer.Deserialize<Log>(message, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (log != null)
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<LogContext>();
+
+                    // Save the log to the database
+                    await context.Logs.AddAsync(log, stoppingToken);
+                    await context.SaveChangesAsync(stoppingToken);
+
+                    _logger.LogInformation($"Processed log: {log.Action}");
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"Failed to deserialize log message: {ex.Message}");
             }
         });
+
 
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }

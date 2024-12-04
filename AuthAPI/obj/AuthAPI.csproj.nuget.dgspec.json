@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {}
+    "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {}
   },
   "projects": {
-    "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {
+    "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
+        "projectUniqueName": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
         "projectName": "AuthAPI",
-        "projectPath": "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
-        "packagesPath": "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/packages/",
-        "outputPath": "/home/javier.cader@ctdesarrollo-sdr.org/Escritorio/Personal/NextStride/BackEnd-NexaLedger/AuthAPI/obj/",
+        "projectPath": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
+        "packagesPath": "/home/hexcss/.nuget/packages/",
+        "outputPath": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/javier.cader@ctdesarrollo-sdr.org/.nuget/NuGet/NuGet.Config"
+          "/home/hexcss/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
