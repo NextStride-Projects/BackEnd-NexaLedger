@@ -184,6 +184,14 @@ namespace AuthAPI.Controllers
                 };
                 await RedisPublisher.PublishLogAsync(log);
 
+                await RedisPublisher.PublishAsync("email-events", new
+                {
+                    Template = "FailedAdminLogin",
+                    Recipient = "javier.cader@alumnos.uneatlantico.es",
+                    Subject = "Failed Admin Login Attempt",
+                    Data = new { Ip = GetClientIp(), Timestamp = DateTime.UtcNow }
+                });
+
                 return Unauthorized("Clave de administrador inválida.");
             }
 

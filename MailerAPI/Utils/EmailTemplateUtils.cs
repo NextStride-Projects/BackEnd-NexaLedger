@@ -7,6 +7,7 @@ public static class EmailTemplateUtils
         return template switch
         {
             "AdminLogin" => GetAdminLoginTemplate(data),
+            "FailedAdminLogin" => GetFailedAdminLoginTemplate(data), // Add this line
             "NewEmpresaRegistration" => GetNewEmpresaRegistrationTemplate(data),
             "NewUserRegistration" => GetNewUserRegistrationTemplate(data),
             "UserLogin" => GetUserLoginTemplate(data),
@@ -70,6 +71,23 @@ public static class EmailTemplateUtils
                     <p><strong>IP Address:</strong> {ip}</p>
                     <p><strong>Login Time:</strong> {loginTime}</p>
                     <p>If this was not you, please secure your account immediately.</p>
+                </body>
+            </html>";
+    }
+
+    private static string GetFailedAdminLoginTemplate(object data)
+    {
+        var ip = data?.GetType()?.GetProperty("Ip")?.GetValue(data)?.ToString() ?? "Unknown";
+        var timestamp = data?.GetType()?.GetProperty("Timestamp")?.GetValue(data)?.ToString() ?? "Unknown";
+        return $@"
+            <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h1 style='color: #FF0000;'>Failed Admin Login Attempt</h1>
+                    <p>Dear Admin,</p>
+                    <p>There was a failed attempt to log in to the Admin Dashboard.</p>
+                    <p><strong>IP Address:</strong> {ip}</p>
+                    <p><strong>Time:</strong> {timestamp}</p>
+                    <p style='color: #888;'>If this was not you, please investigate immediately.</p>
                 </body>
             </html>";
     }
