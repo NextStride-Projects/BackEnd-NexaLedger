@@ -23,7 +23,6 @@ namespace AuthAPI.Controllers
             _configuration = configuration;
         }
 
-        // Helper method to get the IP address of the requester
         private string GetClientIp()
         {
             return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
@@ -40,16 +39,23 @@ namespace AuthAPI.Controllers
             _context.Empresas.Add(empresa);
             await _context.SaveChangesAsync();
 
-            // Log the registration action
             var log = new Log
             {
                 Action = "RegisterEmpresa",
-                UserId = "N/A", // No user is logged in yet
-                EmpresaId = empresa.Id, // The newly registered Empresa ID
+                UserId = "N/A",
+                EmpresaId = empresa.Id,
                 AccessedEmpresaId = empresa.Id,
                 Timestamp = DateTime.UtcNow,
             };
             await RedisPublisher.PublishLogAsync(log);
+
+            await RedisPublisher.PublishAsync("email-events", new
+            {
+                Template = "NewEmpresaRegistration",
+                Recipient = empresa.Email,
+                Subject = "Welcome to NexaLedger",
+                Data = new { EmpresaName = empresa.FullName }
+            });
 
             return Ok(new { message = "Empresa registered successfully!" });
         }
@@ -73,17 +79,24 @@ namespace AuthAPI.Controllers
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            // Log the user registration action
             var log = new Log
             {
                 Action = "RegisterUser",
-                UserId = usuario.Id.ToString(), // The newly registered User ID
+                UserId = usuario.Id.ToString(),
                 EmpresaId = usuario.EmpresaId,
                 AccessedEmpresaId = usuario.EmpresaId,
                 AccessedUsuarioId = usuario.Id,
                 Timestamp = DateTime.UtcNow,
             };
             await RedisPublisher.PublishLogAsync(log);
+
+            await RedisPublisher.PublishAsync("email-events", new
+            {
+                Template = "NewUserRegistration",
+                Recipient = usuario.Email,
+                Subject = "Welcome to NexaLedger",
+                Data = new { UserName = usuario.Name }
+            });
 
             return Ok(new { message = "Usuario registered successfully!" });
         }
@@ -95,7 +108,6 @@ namespace AuthAPI.Controllers
 
             if (usuario == null || !BCrypt.Net.BCrypt.Verify(password, usuario.Password))
             {
-                // Log failed login attempt
                 var log = new Log
                 {
                     Action = "UserLoginFailed",
@@ -110,8 +122,7 @@ namespace AuthAPI.Controllers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(
-                _configuration["Jwt:Key"]
-                    ?? throw new InvalidOperationException("JWT Key is not configured.")
+                _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.")
             );
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -134,7 +145,6 @@ namespace AuthAPI.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            // Log successful login
             var logSuccess = new Log
             {
                 Action = "UserLoginSuccess",
@@ -144,15 +154,27 @@ namespace AuthAPI.Controllers
             };
             await RedisPublisher.PublishLogAsync(logSuccess);
 
+            await RedisPublisher.PublishAsync("email-events", new
+            {
+                Template = "UserLogin",
+                Recipient = usuario.Email,
+                Subject = "Login Notification",
+                Data = new { Ip = GetClientIp(), LoginTime = DateTime.UtcNow }
+            });
+
             return Ok(new { Token = tokenHandler.WriteToken(token), tokenDescriptor.Expires });
         }
 
         [HttpPost("login/admin")]
         public async Task<IActionResult> AdminLogin(string adminKey)
         {
+            if (string.IsNullOrEmpty(adminKey))
+            {
+                return BadRequest("Admin key is required.");
+            }
+
             if (adminKey != _configuration["Admin:Key"])
             {
-                // Log failed admin login attempt
                 var log = new Log
                 {
                     Action = "AdminLoginFailed",
@@ -162,19 +184,16 @@ namespace AuthAPI.Controllers
                 };
                 await RedisPublisher.PublishLogAsync(log);
 
-                return Unauthorized("Invalid admin key.");
+                return Unauthorized("Clave de administrador inválida.");
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(
-                _configuration["Jwt:Key"]
-                    ?? throw new InvalidOperationException("JWT Key is not configured.")
+                _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.")
             );
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Role, "Admin") }
-                ),
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Admin") }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
@@ -186,7 +205,6 @@ namespace AuthAPI.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            // Log successful admin login
             var logSuccess = new Log
             {
                 Action = "AdminLoginSuccess",
@@ -195,6 +213,14 @@ namespace AuthAPI.Controllers
                 Timestamp = DateTime.UtcNow,
             };
             await RedisPublisher.PublishLogAsync(logSuccess);
+
+            await RedisPublisher.PublishAsync("email-events", new
+            {
+                Template = "AdminLogin",
+                Recipient = "javier.cader@alumnos.uneatlantico.es",
+                Subject = "Admin Login Notification",
+                Data = new { Ip = GetClientIp(), LoginTime = DateTime.UtcNow }
+            });
 
             return Ok(new { Token = tokenHandler.WriteToken(token), tokenDescriptor.Expires });
         }

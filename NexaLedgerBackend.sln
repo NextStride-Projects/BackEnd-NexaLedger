@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthAPI", "AuthAPI\AuthAPI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecorderAPI", "RecorderAPI\RecorderAPI.csproj", "{0426F57F-C6D5-4097-9BB5-0348D221A3D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailerAPI", "MailerAPI\MailerAPI.csproj", "{9DE2213B-7F51-43C9-8B8E-0B231FC3CB66}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{0426F57F-C6D5-4097-9BB5-0348D221A3D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0426F57F-C6D5-4097-9BB5-0348D221A3D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0426F57F-C6D5-4097-9BB5-0348D221A3D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DE2213B-7F51-43C9-8B8E-0B231FC3CB66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DE2213B-7F51-43C9-8B8E-0B231FC3CB66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DE2213B-7F51-43C9-8B8E-0B231FC3CB66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DE2213B-7F51-43C9-8B8E-0B231FC3CB66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
