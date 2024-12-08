@@ -31,6 +31,7 @@ namespace AuthAPI.Controllers
         [HttpPost("register/empresa")]
         public async Task<IActionResult> RegisterEmpresa(Empresa empresa)
         {
+            // Check if the email is already in use
             if (await _context.Empresas.AnyAsync(e => e.Email == empresa.Email))
             {
                 return BadRequest("Email is already in use.");
@@ -57,8 +58,13 @@ namespace AuthAPI.Controllers
                 Data = new { EmpresaName = empresa.FullName }
             });
 
-            return Ok(new { message = "Empresa registered successfully!" });
+            return Ok(new
+            {
+                message = "Empresa registered successfully!",
+                empresaId = empresa.Id
+            });
         }
+
 
         [HttpPost("register/user")]
         public async Task<IActionResult> RegisterUser(Usuario usuario)
