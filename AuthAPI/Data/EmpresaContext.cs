@@ -22,9 +22,7 @@ namespace AuthAPI.Data
                 entity.ToTable("Empresas");
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Direccion).HasMaxLength(255);
-                entity.Property(e => e.Telefono).HasMaxLength(20);
+                entity.Property(e => e.Phone).HasMaxLength(20);
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
 
                 entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
@@ -36,7 +34,6 @@ namespace AuthAPI.Data
                 entity.Property(e => e.Features).HasColumnType("jsonb");
                 entity.Property(e => e.ResponsiblePerson).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.ResponsibleEmail).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.StaffCount).IsRequired().HasDefaultValue(0);
             });
 
             modelBuilder.Entity<Usuario>(entity =>

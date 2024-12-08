@@ -79,7 +79,7 @@ namespace AuthAPI.Controllers
             [FromQuery] int pageSize = 10,
             [FromQuery] string? sortBy = "id",
             [FromQuery] string? sortDirection = "asc",
-            [FromQuery] string? nombre = null
+            [FromQuery] string? fullName = null
         )
         {
             var query = _context.Empresas.AsQueryable();
@@ -91,9 +91,9 @@ namespace AuthAPI.Controllers
             }
 
             // Apply filtering
-            if (!string.IsNullOrEmpty(nombre))
+            if (!string.IsNullOrEmpty(fullName))
             {
-                query = query.Where(e => e.Nombre.Contains(nombre));
+                query = query.Where(e => e.FullName.Contains(fullName));
             }
 
             // Apply sorting
@@ -102,10 +102,12 @@ namespace AuthAPI.Controllers
                 case "id":
                     query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.Id) : query.OrderBy(e => e.Id);
                     break;
-                case "nombre":
-                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.Nombre) : query.OrderBy(e => e.Nombre);
+                case "fullname":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.FullName) : query.OrderBy(e => e.FullName);
                     break;
-                // Add more cases as needed for other sortable fields
+                case "category":
+                    query = sortDirection?.ToLower() == "desc" ? query.OrderByDescending(e => e.Category) : query.OrderBy(e => e.Category);
+                    break;
                 default:
                     return BadRequest("Invalid sortBy field.");
             }
@@ -168,37 +170,18 @@ namespace AuthAPI.Controllers
                 return NotFound("Empresa not found.");
             }
 
-            if (
-                !string.IsNullOrEmpty(updatedEmpresa.Nombre)
-                && empresa.Nombre != updatedEmpresa.Nombre
-            )
-            {
-                empresa.Nombre = updatedEmpresa.Nombre;
-            }
-
-            if (
-                !string.IsNullOrEmpty(updatedEmpresa.Direccion)
-                && empresa.Direccion != updatedEmpresa.Direccion
-            )
-            {
-                empresa.Direccion = updatedEmpresa.Direccion;
-            }
-
-            if (
-                !string.IsNullOrEmpty(updatedEmpresa.Telefono)
-                && empresa.Telefono != updatedEmpresa.Telefono
-            )
-            {
-                empresa.Telefono = updatedEmpresa.Telefono;
-            }
-
-            if (
-                !string.IsNullOrEmpty(updatedEmpresa.Email)
-                && empresa.Email != updatedEmpresa.Email
-            )
-            {
-                empresa.Email = updatedEmpresa.Email;
-            }
+            // Update fields
+            empresa.Phone = updatedEmpresa.Phone ?? empresa.Phone;
+            empresa.Email = updatedEmpresa.Email ?? empresa.Email;
+            empresa.FullName = updatedEmpresa.FullName ?? empresa.FullName;
+            empresa.Description = updatedEmpresa.Description ?? empresa.Description;
+            empresa.Alias = updatedEmpresa.Alias ?? empresa.Alias;
+            empresa.Category = updatedEmpresa.Category ?? empresa.Category;
+            empresa.Location = updatedEmpresa.Location ?? empresa.Location;
+            empresa.Active = updatedEmpresa.Active;
+            empresa.Features = updatedEmpresa.Features ?? empresa.Features;
+            empresa.ResponsiblePerson = updatedEmpresa.ResponsiblePerson ?? empresa.ResponsiblePerson;
+            empresa.ResponsibleEmail = updatedEmpresa.ResponsibleEmail ?? empresa.ResponsibleEmail;
 
             _context.Entry(empresa).State = EntityState.Modified;
             await _context.SaveChangesAsync();
