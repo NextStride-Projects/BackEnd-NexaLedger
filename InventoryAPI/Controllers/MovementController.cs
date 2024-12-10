@@ -39,7 +39,8 @@ public class MovementController : ControllerBase
     public async Task<IActionResult> GetMovements(int resourceId)
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resource = await _context.Resources.FirstOrDefaultAsync(r => r.Id == resourceId && r.EmpresaId == empresaId);
+        var resource = await _context.Resources
+            .FirstOrDefaultAsync(r => r.Id == resourceId && r.EmpresaId == empresaId);
 
         if (resource == null)
         {
@@ -57,14 +58,14 @@ public class MovementController : ControllerBase
     public async Task<IActionResult> CreateMovement([FromBody] MovementDto movementDto)
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resource = await _context.Resources.FirstOrDefaultAsync(r => r.Id == movementDto.ResourceId && r.EmpresaId == empresaId);
+        var resource = await _context.Resources
+            .FirstOrDefaultAsync(r => r.Id == movementDto.ResourceId && r.EmpresaId == empresaId);
 
         if (resource == null)
         {
             return NotFound("Resource not found or you do not have access to it.");
         }
 
-        // Create a new Movement entity
         var movement = new Movement
         {
             ResourceId = resource.Id,
@@ -74,8 +75,12 @@ public class MovementController : ControllerBase
             Description = movementDto.Description
         };
 
+        resource.LatestMovementDate = movement.Timestamp;
+
         _context.Movements.Add(movement);
+        _context.Entry(resource).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+
         return CreatedAtAction(nameof(GetMovements), new { resourceId = movement.ResourceId }, movement);
     }
 }

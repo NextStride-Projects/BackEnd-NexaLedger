@@ -27,34 +27,55 @@ public class ResourceController : ControllerBase
         return int.Parse(empresaIdClaim.Value);
     }
 
-    private string GetUserIdFromToken()
-    {
-        var userIdClaim =
-            User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("UserId not found in token.");
-        return userIdClaim.Value;
-    }
-
-    // New Route: Get a specific resource by ID for the logged-in Empresa
     [HttpGet("{id}")]
     public async Task<IActionResult> GetResource(int id)
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resource = await _context.Resources.FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
+        var resource = await _context.Resources
+            .FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
 
         if (resource == null)
         {
             return NotFound("Resource not found or you do not have access to it.");
         }
 
-        return Ok(resource);
+        var resourceDto = new Resource
+        {
+            Id = resource.Id,
+            Name = resource.Name,
+            Description = resource.Description,
+            Features = resource.Features,
+            Category = resource.Category,
+            Available = resource.Available,
+            Price = resource.Price,
+            Image = resource.Image,
+            AcquiredAt = resource.AcquiredAt,
+            LatestMovementDate = resource.LatestMovementDate
+        };
+
+        return Ok(resourceDto);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetResources()
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resources = await _context.Resources.Where(r => r.EmpresaId == empresaId).ToListAsync();
+        var resources = await _context.Resources
+            .Where(r => r.EmpresaId == empresaId)
+            .Select(r => new Resource
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Description = r.Description,
+                Features = r.Features,
+                Category = r.Category,
+                Available = r.Available,
+                Price = r.Price,
+                Image = r.Image,
+                AcquiredAt = r.AcquiredAt,
+                LatestMovementDate = r.LatestMovementDate
+            }).ToListAsync();
+
         return Ok(resources);
     }
 
@@ -63,17 +84,20 @@ public class ResourceController : ControllerBase
     {
         var empresaId = GetEmpresaIdFromToken();
         resource.EmpresaId = empresaId;
+        resource.AcquiredAt = DateTime.UtcNow;
 
         _context.Resources.Add(resource);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetResources), new { id = resource.Id }, resource);
+
+        return CreatedAtAction(nameof(GetResource), new { id = resource.Id }, resource);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateResource(int id, Resource updatedResource)
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resource = await _context.Resources.FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
+        var resource = await _context.Resources
+            .FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
 
         if (resource == null)
         {
@@ -92,6 +116,7 @@ public class ResourceController : ControllerBase
 
         _context.Entry(resource).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+
         return Ok(resource);
     }
 
@@ -99,7 +124,8 @@ public class ResourceController : ControllerBase
     public async Task<IActionResult> DeleteResource(int id)
     {
         var empresaId = GetEmpresaIdFromToken();
-        var resource = await _context.Resources.FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
+        var resource = await _context.Resources
+            .FirstOrDefaultAsync(r => r.Id == id && r.EmpresaId == empresaId);
 
         if (resource == null)
         {
