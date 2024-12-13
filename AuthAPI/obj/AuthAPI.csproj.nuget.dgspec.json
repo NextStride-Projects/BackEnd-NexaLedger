@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {}
+    "C:\\Users\\Veronika\\Documents\\Proyectos\\distri\\proyectoFinal\\BackEnd-NexaLedger\\AuthAPI\\AuthAPI.csproj": {}
   },
   "projects": {
-    "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj": {
+    "C:\\Users\\Veronika\\Documents\\Proyectos\\distri\\proyectoFinal\\BackEnd-NexaLedger\\AuthAPI\\AuthAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
+        "projectUniqueName": "C:\\Users\\Veronika\\Documents\\Proyectos\\distri\\proyectoFinal\\BackEnd-NexaLedger\\AuthAPI\\AuthAPI.csproj",
         "projectName": "AuthAPI",
-        "projectPath": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/AuthAPI.csproj",
-        "packagesPath": "/home/hexcss/.nuget/packages/",
-        "outputPath": "/home/hexcss/Escritorio/NextStride/NexaLedger/BackEnd-NexaLedger/AuthAPI/obj/",
+        "projectPath": "C:\\Users\\Veronika\\Documents\\Proyectos\\distri\\proyectoFinal\\BackEnd-NexaLedger\\AuthAPI\\AuthAPI.csproj",
+        "packagesPath": "C:\\Users\\Veronika\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Veronika\\Documents\\Proyectos\\distri\\proyectoFinal\\BackEnd-NexaLedger\\AuthAPI\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/hexcss/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Veronika\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -32,6 +39,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -45,6 +57,10 @@
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Microsoft.AspNetCore.Cors": {
+              "target": "Package",
+              "version": "[2.2.0, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
@@ -92,7 +108,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -7,5 +7,6 @@ public class ResourceDto
     public string Category { get; set; }
     public bool Available { get; set; }
     public decimal Price { get; set; }
+    public double Size { get; set; }
     public string Image { get; set; }
 }

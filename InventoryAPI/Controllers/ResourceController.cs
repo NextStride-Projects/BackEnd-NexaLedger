@@ -48,6 +48,7 @@ public class ResourceController : ControllerBase
             Category = resource.Category,
             Available = resource.Available,
             Price = resource.Price,
+            Size = resource.Size,
             Image = resource.Image,
             AcquiredAt = resource.AcquiredAt,
             LatestMovementDate = resource.LatestMovementDate
@@ -72,6 +73,7 @@ public class ResourceController : ControllerBase
                 Available = r.Available,
                 Price = r.Price,
                 Image = r.Image,
+                Size = r.Size,
                 AcquiredAt = r.AcquiredAt,
                 LatestMovementDate = r.LatestMovementDate
             }).ToListAsync();
