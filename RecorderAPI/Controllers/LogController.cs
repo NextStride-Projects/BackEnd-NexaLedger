@@ -35,13 +35,14 @@ namespace RecorderAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetLogs(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? sortBy = "id",
-            [FromQuery] string? sortDirection = "asc",
-            [FromQuery] string? userId = null,
-            [FromQuery] int? empresaId = null
-            )
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? sortBy = "id",
+    [FromQuery] string? sortDirection = "asc",
+    [FromQuery] string? userId = null,
+    [FromQuery] int? empresaId = null,
+    [FromQuery] string? action = null // New parameter for filtering by action
+)
         {
             // Ensure only Admin can access this endpoint
             if (!IsAdmin())
@@ -60,6 +61,11 @@ namespace RecorderAPI.Controllers
             if (empresaId.HasValue)
             {
                 query = query.Where(log => log.EmpresaId == empresaId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(action))
+            {
+                query = query.Where(log => log.Action == action); // Filter by action
             }
 
             // Apply sorting
@@ -91,6 +97,7 @@ namespace RecorderAPI.Controllers
                 logs
             });
         }
+
 
     }
 }

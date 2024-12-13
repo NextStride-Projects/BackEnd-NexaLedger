@@ -109,10 +109,11 @@ namespace AuthAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUsuario(int id, Usuario updatedUsuario)
         {
-            var userId = GetUserIdFromToken();
 
             if (!IsAdmin())
             {
+                var userId = GetUserIdFromToken();
+
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
                 var usuario = await _context.Usuarios.FindAsync(id);
 
@@ -160,10 +161,10 @@ namespace AuthAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var userId = GetUserIdFromToken();
 
             if (!IsAdmin())
             {
+                var userId = GetUserIdFromToken();
                 var loggedInEmpresaId = GetEmpresaIdFromToken();
                 var usuario = await _context.Usuarios.FindAsync(id);
 

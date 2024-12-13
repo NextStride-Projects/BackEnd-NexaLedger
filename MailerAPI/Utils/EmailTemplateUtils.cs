@@ -4,10 +4,18 @@ public static class EmailTemplateUtils
 {
     public static string GetTemplate(string template, object data)
     {
+        if (!ValidateEmailData(template, data))
+        {
+            LogData(template, data, isValid: false);
+            return "<p>Invalid data for the template.</p>";
+        }
+
+        LogData(template, data, isValid: true);
+
         return template switch
         {
             "AdminLogin" => GetAdminLoginTemplate(data),
-            "FailedAdminLogin" => GetFailedAdminLoginTemplate(data), // Add this line
+            "FailedAdminLogin" => GetFailedAdminLoginTemplate(data),
             "NewEmpresaRegistration" => GetNewEmpresaRegistrationTemplate(data),
             "NewUserRegistration" => GetNewUserRegistrationTemplate(data),
             "UserLogin" => GetUserLoginTemplate(data),
@@ -15,9 +23,44 @@ public static class EmailTemplateUtils
         };
     }
 
+    private static bool ValidateEmailData(string template, object data)
+    {
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return false;
+        }
+
+        return template switch
+        {
+            "AdminLogin" => jsonData.TryGetProperty("Ip", out _),
+            "FailedAdminLogin" => jsonData.TryGetProperty("Ip", out _) 
+                                  && jsonData.TryGetProperty("LoginTime", out _),
+            "NewEmpresaRegistration" => jsonData.TryGetProperty("EmpresaName", out _),
+            "NewUserRegistration" => jsonData.TryGetProperty("UserName", out _),
+            "UserLogin" => jsonData.TryGetProperty("Ip", out _) 
+                           && jsonData.TryGetProperty("Timestamp", out _),
+            _ => false,
+        };
+    }
+
+    private static void LogData(string template, object data, bool isValid)
+    {
+        var status = isValid ? "Valid" : "Invalid";
+        var properties = data is System.Text.Json.JsonElement jsonData
+            ? string.Join(", ", jsonData.EnumerateObject().Select(p => p.Name))
+            : "Unknown";
+        Console.WriteLine($"[EmailTemplateUtils] Template: {template}, Status: {status}, Properties: {properties}, Data: {System.Text.Json.JsonSerializer.Serialize(data)}");
+    }
+
     private static string GetAdminLoginTemplate(object data)
     {
-        var ip = data?.GetType()?.GetProperty("Ip")?.GetValue(data)?.ToString() ?? "Unknown";
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var ip = jsonData.TryGetProperty("Ip", out var ipProperty) ? ipProperty.GetString() : "Unknown";
+
         return $@"
             <html>
                 <body style='font-family: Arial, sans-serif;'>
@@ -32,7 +75,13 @@ public static class EmailTemplateUtils
 
     private static string GetNewEmpresaRegistrationTemplate(object data)
     {
-        var empresaName = data?.GetType()?.GetProperty("EmpresaName")?.GetValue(data)?.ToString() ?? "Your Empresa";
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var empresaName = jsonData.TryGetProperty("EmpresaName", out var nameProperty) ? nameProperty.GetString() : "Your Empresa";
+
         return $@"
             <html>
                 <body style='font-family: Arial, sans-serif;'>
@@ -46,7 +95,13 @@ public static class EmailTemplateUtils
 
     private static string GetNewUserRegistrationTemplate(object data)
     {
-        var userName = data?.GetType()?.GetProperty("UserName")?.GetValue(data)?.ToString() ?? "User";
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var userName = jsonData.TryGetProperty("UserName", out var nameProperty) ? nameProperty.GetString() : "User";
+
         return $@"
             <html>
                 <body style='font-family: Arial, sans-serif;'>
@@ -60,8 +115,14 @@ public static class EmailTemplateUtils
 
     private static string GetUserLoginTemplate(object data)
     {
-        var ip = data?.GetType()?.GetProperty("Ip")?.GetValue(data)?.ToString() ?? "Unknown";
-        var loginTime = data?.GetType()?.GetProperty("LoginTime")?.GetValue(data)?.ToString() ?? "Unknown";
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var ip = jsonData.TryGetProperty("Ip", out var ipProperty) ? ipProperty.GetString() : "Unknown";
+        var loginTime = jsonData.TryGetProperty("Timestamp", out var timeProperty) ? timeProperty.GetString() : "Unknown";
+
         return $@"
             <html>
                 <body style='font-family: Arial, sans-serif;'>
@@ -77,18 +138,24 @@ public static class EmailTemplateUtils
 
     private static string GetFailedAdminLoginTemplate(object data)
     {
-        var ip = data?.GetType()?.GetProperty("Ip")?.GetValue(data)?.ToString() ?? "Unknown";
-        var timestamp = data?.GetType()?.GetProperty("Timestamp")?.GetValue(data)?.ToString() ?? "Unknown";
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var ip = jsonData.TryGetProperty("Ip", out var ipProperty) ? ipProperty.GetString() : "Unknown";
+        var loginTime = jsonData.TryGetProperty("LoginTime", out var timeProperty) ? timeProperty.GetString() : "Unknown";
+
         return $@"
-            <html>
-                <body style='font-family: Arial, sans-serif;'>
-                    <h1 style='color: #FF0000;'>Failed Admin Login Attempt</h1>
-                    <p>Dear Admin,</p>
-                    <p>There was a failed attempt to log in to the Admin Dashboard.</p>
-                    <p><strong>IP Address:</strong> {ip}</p>
-                    <p><strong>Time:</strong> {timestamp}</p>
-                    <p style='color: #888;'>If this was not you, please investigate immediately.</p>
-                </body>
-            </html>";
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h1 style='color: #FF0000;'>Failed Admin Login Attempt</h1>
+                <p>Dear Admin,</p>
+                <p>There was a failed attempt to log in to the Admin Dashboard.</p>
+                <p><strong>IP Address:</strong> {ip}</p>
+                <p><strong>Time:</strong> {loginTime}</p>
+                <p style='color: #888;'>If this was not you, please investigate immediately.</p>
+            </body>
+        </html>";
     }
 }

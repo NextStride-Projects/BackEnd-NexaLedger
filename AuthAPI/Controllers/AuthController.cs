@@ -172,14 +172,14 @@ namespace AuthAPI.Controllers
         }
 
         [HttpPost("login/admin")]
-        public async Task<IActionResult> AdminLogin(string adminKey)
+        public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequest request)
         {
-            if (string.IsNullOrEmpty(adminKey))
+            if (string.IsNullOrEmpty(request.AdminKey))
             {
                 return BadRequest("Admin key is required.");
             }
 
-            if (adminKey != _configuration["Admin:Key"])
+            if (request.AdminKey != _configuration["Admin:Key"])
             {
                 var log = new Log
                 {
@@ -195,7 +195,7 @@ namespace AuthAPI.Controllers
                     Template = "FailedAdminLogin",
                     Recipient = "javier.cader@alumnos.uneatlantico.es",
                     Subject = "Failed Admin Login Attempt",
-                    Data = new { Ip = GetClientIp(), Timestamp = DateTime.UtcNow }
+                    Data = new { request.Ip, LoginTime = DateTime.UtcNow }
                 });
 
                 return Unauthorized("Clave de administrador inválida.");
@@ -233,7 +233,7 @@ namespace AuthAPI.Controllers
                 Template = "AdminLogin",
                 Recipient = "javier.cader@alumnos.uneatlantico.es",
                 Subject = "Admin Login Notification",
-                Data = new { Ip = GetClientIp(), LoginTime = DateTime.UtcNow }
+                Data = new { request.Ip, LoginTime = DateTime.UtcNow }
             });
 
             return Ok(new { Token = tokenHandler.WriteToken(token), tokenDescriptor.Expires });
