@@ -11,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nexa_network
 
   redis:
     image: redis:alpine
@@ -18,6 +20,36 @@ services:
     restart: always
     ports:
       - "6379:6379" # Redis communication port
+    networks:
+      - nexa_network
+
+  redis_commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis_commander
+    restart: always
+    ports:
+      - "8001:8081" # Redis Commander UI port
+    environment:
+      - REDIS_HOSTS=local:nexa_redis:6379
+    depends_on:
+      - redis
+    networks:
+      - nexa_network
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080" # Adminer UI port
+    depends_on:
+      - postgres
+    networks:
+      - nexa_network
 
 volumes:
   postgres_data:
+
+networks:
+  nexa_network:
+    driver: bridge

@@ -19,6 +19,10 @@ public static class EmailTemplateUtils
             "NewEmpresaRegistration" => GetNewEmpresaRegistrationTemplate(data),
             "NewUserRegistration" => GetNewUserRegistrationTemplate(data),
             "UserLogin" => GetUserLoginTemplate(data),
+            "AdminDeactivatedEmpresa" => GetAdminDeactivatedEmpresaTemplate(data),
+            "UserDeactivatedEmpresa" => GetUserDeactivatedEmpresaTemplate(data),
+            "UserReactivatedEmpresa" => GetUserReactivatedEmpresaTemplate(data),
+            "AdminReactivatedEmpresa" => GetAdminReactivatedEmpresaTemplate(data),
             _ => "<p>Template not found.</p>"
         };
     }
@@ -33,12 +37,14 @@ public static class EmailTemplateUtils
         return template switch
         {
             "AdminLogin" => jsonData.TryGetProperty("Ip", out _),
-            "FailedAdminLogin" => jsonData.TryGetProperty("Ip", out _) 
-                                  && jsonData.TryGetProperty("LoginTime", out _),
+            "FailedAdminLogin" => jsonData.TryGetProperty("Ip", out _) && jsonData.TryGetProperty("LoginTime", out _),
             "NewEmpresaRegistration" => jsonData.TryGetProperty("EmpresaName", out _),
             "NewUserRegistration" => jsonData.TryGetProperty("UserName", out _),
-            "UserLogin" => jsonData.TryGetProperty("Ip", out _) 
-                           && jsonData.TryGetProperty("Timestamp", out _),
+            "UserLogin" => jsonData.TryGetProperty("Ip", out _) && jsonData.TryGetProperty("Timestamp", out _),
+            "AdminDeactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
+            "UserDeactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
+            "UserReactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
+            "AdminReactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
             _ => false,
         };
     }
@@ -158,4 +164,95 @@ public static class EmailTemplateUtils
             </body>
         </html>";
     }
+
+    private static string GetAdminDeactivatedEmpresaTemplate(object data)
+    {
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var empresaName = jsonData.TryGetProperty("EmpresaName", out var nameProperty) ? nameProperty.GetString() : "Your Empresa";
+        var motive = jsonData.TryGetProperty("Motive", out var motiveProperty) ? motiveProperty.GetString() : "Unknown motive";
+
+        return $@"
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h1 style='color: #FF0000;'>Your Empresa has been deactivated</h1>
+                <p>Dear {empresaName},</p>
+                <p>Your Empresa has been deactivated by an admin for the following reason:</p>
+                <p><strong>Reason:</strong> {motive}</p>
+                <p>If you believe this is a mistake, please contact support immediately.</p>
+            </body>
+        </html>";
+    }
+
+    private static string GetUserDeactivatedEmpresaTemplate(object data)
+    {
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var empresaName = jsonData.TryGetProperty("EmpresaName", out var nameProperty) ? nameProperty.GetString() : "An Empresa";
+        var motive = jsonData.TryGetProperty("Motive", out var motiveProperty) ? motiveProperty.GetString() : "Unknown motive";
+        var responsiblePerson = jsonData.TryGetProperty("ResponsiblePerson", out var personProperty) ? personProperty.GetString() : "Unknown";
+
+        return $@"
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h1 style='color: #FF0000;'>An Empresa has been deactivated</h1>
+                <p>Dear Admin,</p>
+                <p>The Empresa <strong>{empresaName}</strong> has been deactivated by <strong>{responsiblePerson}</strong> for the following reason:</p>
+                <p><strong>Reason:</strong> {motive}</p>
+                <p>If this action was unauthorized, please take immediate action.</p>
+            </body>
+        </html>";
+    }
+
+    private static string GetAdminReactivatedEmpresaTemplate(object data)
+    {
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var empresaName = jsonData.TryGetProperty("EmpresaName", out var nameProperty) ? nameProperty.GetString() : "Unknown Empresa";
+        var responsiblePerson = jsonData.TryGetProperty("ResponsiblePerson", out var personProperty) ? personProperty.GetString() : "Unknown";
+        var motive = jsonData.TryGetProperty("Motive", out var motiveProperty) ? motiveProperty.GetString() : "No motive provided";
+
+        return $@"
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h1 style='color: #006400;'>Empresa Reactivated</h1>
+                <p>Dear {responsiblePerson},</p>
+                <p>Your Empresa <strong>{empresaName}</strong> has been reactivated.</p>
+                <p><strong>Reason:</strong> {motive}</p>
+            </body>
+        </html>";
+    }
+
+    private static string GetUserReactivatedEmpresaTemplate(object data)
+    {
+        if (data is not System.Text.Json.JsonElement jsonData)
+        {
+            return "<p>Invalid data structure.</p>";
+        }
+
+        var empresaName = jsonData.TryGetProperty("EmpresaName", out var nameProperty) ? nameProperty.GetString() : "Unknown Empresa";
+        var responsiblePerson = jsonData.TryGetProperty("ResponsiblePerson", out var personProperty) ? personProperty.GetString() : "Unknown";
+        var motive = jsonData.TryGetProperty("Motive", out var motiveProperty) ? motiveProperty.GetString() : "No motive provided";
+
+        return $@"
+        <html>
+            <body style='font-family: Arial, sans-serif;'>
+                <h1 style='color: #006400;'>Empresa Reactivated</h1>
+                <p>Dear Admin,</p>
+                <p>The Empresa <strong>{empresaName}</strong>, managed by <strong>{responsiblePerson}</strong>, has been reactivated.</p>
+                <p><strong>Reason:</strong> {motive}</p>
+            </body>
+        </html>";
+    }
+
+
 }
