@@ -40,7 +40,7 @@ public static class EmailTemplateUtils
             "FailedAdminLogin" => jsonData.TryGetProperty("Ip", out _) && jsonData.TryGetProperty("LoginTime", out _),
             "NewEmpresaRegistration" => jsonData.TryGetProperty("EmpresaName", out _),
             "NewUserRegistration" => jsonData.TryGetProperty("UserName", out _),
-            "UserLogin" => jsonData.TryGetProperty("Ip", out _) && jsonData.TryGetProperty("Timestamp", out _),
+            "UserLogin" => jsonData.TryGetProperty("Ip", out _) && jsonData.TryGetProperty("LoginTime", out _),
             "AdminDeactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
             "UserDeactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
             "UserReactivatedEmpresa" => jsonData.TryGetProperty("EmpresaName", out _) && jsonData.TryGetProperty("Motive", out _),
@@ -127,7 +127,7 @@ public static class EmailTemplateUtils
         }
 
         var ip = jsonData.TryGetProperty("Ip", out var ipProperty) ? ipProperty.GetString() : "Unknown";
-        var loginTime = jsonData.TryGetProperty("Timestamp", out var timeProperty) ? timeProperty.GetString() : "Unknown";
+        var loginTime = jsonData.TryGetProperty("LoginTime", out var timeProperty) ? timeProperty.GetString() : "Unknown";
 
         return $@"
             <html>

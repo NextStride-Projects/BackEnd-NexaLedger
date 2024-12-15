@@ -207,7 +207,7 @@ namespace AuthAPI.Controllers
                 Template = "UserLogin",
                 Recipient = usuario.Email,
                 Subject = "Login Notification",
-                Data = new { Ip = GetClientIp(), LoginTime = DateTime.UtcNow }
+                Data = new { Ip = "Unknown", LoginTime = DateTime.UtcNow }
             });
 
             return Ok(new { Token = tokenHandler.WriteToken(token), tokenDescriptor.Expires });
